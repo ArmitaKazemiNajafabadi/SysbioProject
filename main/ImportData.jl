@@ -1,12 +1,8 @@
-# importing packages
-using Pkg
-Pkg.add("SBML")
-Pkg.add("JuMP")
-Pkg.add("GLPK")
+module dataImport
+export importData
 
-using SBML
-# model = readSBML("resources/e-coli-core.xml")
-
-using JuMP, GLPK
-
-sparse()
+function importData(path)
+    #=
+        returns S, rev
+    =#
+end
