@@ -4,23 +4,30 @@ export find_BI
 
 using LinearAlgebra, SparseArrays, JuMP, GLPK
 
-function blocked_identifier(S, rev)
+function remove_blocked_reactions(S, rev)
 #=
     finds all blocked reactions
         finds irreversible blocked with one LP
         finds reversible blocked with many linear equations
 =#
     irr_blocked = find_BI(S,rev)
-    # for any i we have: ir_blocked[i] = 0 iff reaction i is irreversible and blocked
-    #S2, rev2 = remove_reactions(S, irr_blocked)
-    #n = size(S2, 2)
-    #for j in 1:n
-    #    if rev2[j]
-    #        rev_blocked[j] = has-solusion(S2,j)
-    #    end
-    #end
-    blocked = irr_blocked
-    return blocked
+    S2, rev2 = remove_reactions(S,rev,irr_blocked)
+    n = size(S2, 2) # n is number of columns of S
+    rev_blocked = fill(1, n)
+    for i in 1:n
+        if rev2[i]
+            rev_blocked[i] = is_rev_blocked(S2,i)
+        end
+    end
+    S3, rev3 = remove_reactions(S2,rev2,rev_blocked)
+    return S3, rev3
+end
+
+function is_rev_blocked(S, i)
+#=
+    returns 1 whether system of equations Sx = 0 and e^i x = 1 has a solution. returns 0 otherwise.
+=#
+    
 end
 
 function find_BI(S,rev)
@@ -51,20 +58,44 @@ function find_BI(S,rev)
     return result
 end
 
+function is_fully_coupled(S, i , j)
+#=
+    returns c, 1 when system (S^(j))^T x = (e_i)^(j) has solution. S^(j) denotes the matrix S without j-th row
+    otherwise returns 0
+=#
+    # S2 = remove j-th row of S
+    # e2 = remove j-th row of e_i
+    # determine whether system S2 x = e2 has a solution
 
+end
+
+function reduce_variables_based_on_fully_coupled(model)
+#=
+    adds constraint v_i = c v_j for any i,j that Ri and Rj are fully coupled
+    adds constraint z_i = z_j too (z is integer varialbes of MILP)
+=#
+
+end
+
+function any_other_idea_for_reducing_variables()
+
+end
 
 function essential_identifier(S, rev)
     println(":|")
 end
 
-function remove_reactions(S, reaction_set)
+function remove_reactions(S, rev, reaction_set)
 #=
-
+    remove i-th column of S and i-th component of rev for each i in reactions_set
 =#
 end
 
 function findMRS()
-    
+   # create MILP 
+   # add some constraints based on fully coupled reactions (or remove some variables)
+   # remove more variables with other ideas
+   # solve MILP
 end
 
 function findAllMRS()
