@@ -1,8 +1,9 @@
-module dataImport
-export importData
+module ImportData
+export getParsedData
 
-function importData(path)
+function getParsedData(path=0)
     #=
         returns S, rev
     =#
+end
 end
