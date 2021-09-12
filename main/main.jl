@@ -7,7 +7,7 @@ using .ImportData
 #=
 obtain S, rev, ... from metabolic network
 =#
-S, rev = getParsedData()
+S, rev = getParsedData("resources/e-coli-core.xml")
 blocked_reactions = remove_blocked_reactions(S,rev)
 essential_reactions = identify_essential_reactions(S,rev)
 group_identifier = group_reactions(S,rev)

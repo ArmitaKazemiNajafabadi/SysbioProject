@@ -3,14 +3,18 @@ export getParsedData
 
 using SBML
 
-function getParsedData(path=0)
+function getParsedData(path)
     #=
         returns S, rev
     =#
 
-    model = readSBML("Ec_core_flux1.xml")
-    metabolites, reactions, S = getS(model)
+    model = readSBML(path)
 
+    # metabolites, reactions, S = getS(model)
+    metabolites, reactions, S = stoichiometry_matrix(model)
+
+    reversibles = [v.reversible for (x,v) in model.reactions]
+    return metabolites, reactions, S, reversible
 end
 
 end
