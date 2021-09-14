@@ -2,7 +2,7 @@ module MRSFinder
 export findAllIRGs
 export find_BI
 
-using LinearAlgebra, SparseArrays, JuMP, GLPK
+using LinearAlgebra, SparseArrays, JuMP, GLPK, DataStructures
 
 function remove_blocked_reactions(S, rev)
 #=
@@ -23,6 +23,8 @@ function remove_blocked_reactions(S, rev)
     return S3, rev3
 end
 
+
+#------------------------------------------------------------------------------------------------------------------------------------------
 #copied from https://github.com/mtefagh/swiftcore/blob/master/src/swiftcc.m
 function remove_blocked_reactions(S, rev, varargin)            
     [m, n] = size(S);
@@ -117,6 +119,10 @@ function  remove_irrev_blocked_reactions(S, rev, solver)
     end
     
 end
+#---------------------------------------------------------------------------------------------------------------------------------------
+
+
+
 
 function is_rev_blocked(S, i)
 #=
@@ -203,18 +209,71 @@ function generate_substitutable_solutions(new_ans)
 end
 
 function findIRG(S,V_biomass,additional_conditions=0)
+
+    m, n = size(S)
+model = Model(GLPK.Optimizer)
+
    # create MILP 
    # add some constraints based on fully coupled reactions (or remove some variables)
    # remove more variables with other ideas
    # solve MILP
+
+# min z = Σ w.y
+#Sv = 0
+#vmin.y <= v <=vmaz.y : v ∈ IRG
+#v_biomass>= v_max_biomass
+
+
     
     return IRG
 end
 
+function initiate_model(S,V_biomass)
+    #ARE WE SUPPOSED TO ASK USER FOR PROVIDING UPPER AND LOWER BOUNDS?
+    ub = [fill(10, n); fill(1.0, n)]
+    lb = [fill(-10, n); fill(0.0, n)]
+    @variable(prgrm, 0<=x, Int)
+    @variable(prgrm2, 0<=x[1:n]<=1, Int)
+
+    for i in 1:n
+        for j in 1:n
+            if(ADJ_MAT[i,j] == 1)
+                c = @constraint(prgrm2, x[i] + x[j] >= 1)
+                set_name(c,"C")
+                println(c)
+            end
+        end
+    end
+
+
+
+@variable(model, lb[j] <= v[j=1:] <= ub[j])     # 0 <= u <= 1
+for j in 1:n
+    if rev[j]
+        @constraint(model, vu[n+j] == 1.0)          # u[j] == 1 if rev[j], variable u just stands for irreversible reactions
+    else
+        @constraint(model, vu[n+j] <= vu[j])        # u <= v_I
+    end
+end
+for j in 1:m
+    @constraint(model, sum(S[j,k]*vu[k] for k in 1:n) == 0.0)   # Sv == 0
+end
+
+# set bojective function : sum u_i for i in R_I
+@objective(model, Max, sum(vu[j] for j in [n + i for i in 1:n if !rev[i]]))
+
+optimize!(model)
+
+result = [value(vu[j]) for j in n+1:n+n]
+
+
+end
+
 function findAllIRGs(S,V_biomass)
     IRGs = []
+    pre_model = initiate_model(S,V_biomass)
     while true
-        new_ans = findIRG(S,V_biomass,additional_conditions);         
+        new_ans, pre_model = findIRG(pre_model,additional_conditions);         
         new_ans_size = size(new_ans)                                 #number of reastions
         
         if(new_ans_size > prev_ans_size){
@@ -231,5 +290,26 @@ function findAllIRGs(S,V_biomass)
     end
 return IRGs
 end
+
+function ungroup(grouped_reactions, group_identifier)
+    s = #sigma of group_identifier SparseArrays
+    reactions()
+
+
+end
+
+function findAllMRSs(blocked_reactions,essential_reactions,all_IRGs,group_identifier)
+    all_IRGs = findAllIRGs(S,V_biomass)
+    MRSs = []
+    
+    #make this quicker
+    for # each IRG like IRG
+        MRS = (1-blocked_reactions) + ungroup(essential_reactions,group_identifier) + ungroup(IRG,group_identifier)     
+        push!(MRSs,MRS)
+    end    
+    return MRSs
+end
+
+
 
 end
