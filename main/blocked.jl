@@ -33,7 +33,7 @@ function find_blocked_irrev(S, rev)
         @constraint(model, sum(S[j,k]*v[k] for k in 1:n) == 0.0)   # Sv == 0
     end
     # set objective function : sum u_i for i in R_I
-    @objective(model, Max, sum(u[j=1:n]))
+    @objective(model, Max, sum([u[j] for j in 1:n]))
     optimize!(model)
     result = [value(u[j]) for j in 1:n]
     return result
