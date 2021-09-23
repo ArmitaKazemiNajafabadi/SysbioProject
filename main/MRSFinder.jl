@@ -211,17 +211,17 @@ end
 function findIRG(S,V_biomass,additional_conditions=0)
 
     m, n = size(S)
-model = Model(GLPK.Optimizer)
+    model = Model(GLPK.Optimizer)
 
    # create MILP 
    # add some constraints based on fully coupled reactions (or remove some variables)
    # remove more variables with other ideas
    # solve MILP
 
-# min z = Σ w.y
-#Sv = 0
-#vmin.y <= v <=vmaz.y : v ∈ IRG
-#v_biomass>= v_max_biomass
+    # min z = Σ w.y
+    #Sv = 0
+    #vmin.y <= v <=vmaz.y : v ∈ IRG
+    #v_biomass>= v_max_biomass
 
 
     
