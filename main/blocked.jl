@@ -1,5 +1,5 @@
 module new
-export find_blocked_irrev
+export remove_blocked
 
 using 
     LinearAlgebra, 
@@ -9,22 +9,18 @@ using
 
 function find_blocked_irrev(S, rev)
 #=
-    removes blocked irreversible functions
+    
 =#
     m, n = size(S)
     model = Model(GLPK.Optimizer)
 
     # set variables and constraints based on LP (10) in the article
-    ub = [fill(10, n); fill(1.0, n)]
-    lb = [fill(-10, n); fill(0.0, n)]
-    @variable(model, lb[j] <= vu[j=1:n+n] <= ub[j])     # 0 <= u <= 1
-
     @variable(model, -Inf <= v[j=1:n] <= Inf)
-    @variable(model, 0.0 <= u[j=1:n] <= 1.0)    # 0 <= u <= 1
+    @variable(model, 0.0 <= u[j=1:n] <= 1.0)        # 0 <= u <= 1
 
     for j in 1:n
         if rev[j]
-            @constraint(model, u[j] == 1.0)          # u[j] == 1 if rev[j], variable u just stands for irreversible reactions
+            @constraint(model, u[j] == 1.0)         # u[j] == 1 if rev[j], variable u just stands for irreversible reactions
         else
             @constraint(model, u[j] <= v[j])        # u <= v_I
         end
@@ -36,7 +32,55 @@ function find_blocked_irrev(S, rev)
     @objective(model, Max, sum([u[j] for j in 1:n]))
     optimize!(model)
     result = [value(u[j]) for j in 1:n]
-    return result
+    
+    return result .≈ 1
+end
+
+function remove_blocked_irrev(S, rev)
+#=
+    removes all blocked irreversible reactions
+    and returns new S, rev
+=#
+    unblocked = find_blocked_irrev(S, rev)
+    return S[:, unblocked], rev[:, unblocked]
+end 
+
+function find_blocked_rev(S, rev)
+#=
+    S: dense stoich matrix (n*m)
+=#
+    K = nullspace(S)
+
+    n, b = size(K)  #   n: number of reactions
+                    #   b: basis cardinal
+    
+    is_blocked = falses(n)
+    all_zero = false
+    for i in 1:n
+        all_zero = true
+        for j in 1:b 
+            if K[i,j] != 0
+                all_zero = false
+                break
+            end
+        end
+        if all_zero
+            is_blocked[i] = true
+        end
+    end
+
+    return blocked
+end
+
+function remove_blocked_rev(S, rev)
+    unblocked = .! find_blocked_rev(S, rev)
+    return S[:, unblocked], rev[:, unblocked]
+end
+
+function remove_blocked(S, rev)
+    S, rev = remove_blocked_irrev(S, rev)
+    S, rev = remove_blocked_rev(S, rev)
+    return S, rev
 end
 
 end
