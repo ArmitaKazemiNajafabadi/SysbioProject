@@ -17,4 +17,9 @@ function getParsedData(path)
     return metabolites, reactions, S, reversible
 end
 
+function getModel(path)
+    model = readSBML(path)
+end
+
+
 end
