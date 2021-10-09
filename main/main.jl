@@ -23,23 +23,16 @@ MRSs = findAllMRSs(blocked_reactions,essential_reactions,all_IRGs,group_identifi
 
 
 
+
+
+
+
 function group_reactions(setOfReactions, S, rev)
     # identify incoming/outgoing boundary reactions
     incoming_reactions = []
     
-    m, n = Size(S)
-    rows = rowvals(S)
-    vals = nonzeros(S)
-    for j = 1:n
-        for i in nzrange(A, j)
-            row = rows[i]
-            val = vals[i]
-        end
-    end
-        
-
-
-
+    startSearchingNeighbourhood(setOfReactions, S, rev, depth)
+   
     flag = false
     break_flag = false
     is_positive = true
@@ -86,4 +79,40 @@ function group_reactions(setOfReactions, S, rev)
         
     end
     
+end
+
+function  startSearchingNeighbourhood(setOfReactions, S, rev, depth)
+     m, n = Size(S)
+    rows = rowvals(S)
+    vals = nonzeros(S)
+    
+    #eachMetaboliteProducers = Array{Any}(undef, 1,m)
+    #eachMetaboliteConsumers = Array{Any}(undef, 1,m)
+
+function graphSearchRequirements(m,n,rows,vals, S,rev)
+    eachMetaboliteProducers = Array{MutableLinkedList{Any}}(undef, 1,m)
+    eachMetaboliteConsumers = Array{MutableLinkedList{Any}}(undef, 1,m)
+    for i=1:m
+        eachMetaboliteProducers[i] = MutableLinkedList{Any}()
+        eachMetaboliteConsumers[i] = MutableLinkedList{Any}()
+    end
+    
+    for j = 1:n
+        for i in nzrange(A, j)
+            whichRow = row[i]
+            val = vals[i]
+            if(rev[j]) 
+                push!(eachMetaboliteProducers
+            elseif (val>0)
+            else
+            end                                              
+            searchNeighbourhood(setOfReactions, S, rev, depth-1,whichRow,j)
+
+
+
+            Array{ُStack{Tuple,1},1}
+            s = Stack{Int}() 
+            
+        end
+    end
 end
