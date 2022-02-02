@@ -1,5 +1,5 @@
 module new
-export remove_blocked
+export remove_blocked_reactions
 
 using 
     LinearAlgebra, 
@@ -7,9 +7,36 @@ using
     JuMP, 
     GLPK       
 
+function remove_blocked_reactions(S, rev)
+    S, rev = remove_blocked_irrev(S, rev)
+    S, rev = remove_blocked_rev(S, rev)
+    return S, rev
+end
+
+function remove_blocked_irrev(S, rev)
+    #=
+        findes, then removes all blocked irreversible reactions
+        and returns new S, rev
+    =#
+        unblocked = find_blocked_irrev(S, rev)
+        return S[:, unblocked], rev[:, unblocked]
+end 
+
+function remove_blocked_rev(S, rev)
+    #=
+        findes, then removes all blocked reversible reactions
+        and returns new S, rev
+    =#
+    # این نقطه و علامت تعجب چه می کنن این پایین؟
+    unblocked = .! find_blocked_rev(S, rev)
+    return S[:, unblocked], rev[:, unblocked]
+end
+
+
 function find_blocked_irrev(S, rev)
 #=
-    
+     findes all blocked irreversible reactions
+        and returns an array of indices corresponding to reactions which weren't blocked-irreversible.
 =#
     m, n = size(S)
     model = Model(GLPK.Optimizer)
@@ -32,18 +59,10 @@ function find_blocked_irrev(S, rev)
     @objective(model, Max, sum([u[j] for j in 1:n]))
     optimize!(model)
     result = [value(u[j]) for j in 1:n]
-    
+
+    ############################ IN CHERA INO RETURN MIKONE?
     return result .≈ 1
 end
-
-function remove_blocked_irrev(S, rev)
-#=
-    removes all blocked irreversible reactions
-    and returns new S, rev
-=#
-    unblocked = find_blocked_irrev(S, rev)
-    return S[:, unblocked], rev[:, unblocked]
-end 
 
 function find_blocked_rev(S, rev)
 #=
@@ -68,19 +87,8 @@ function find_blocked_rev(S, rev)
             is_blocked[i] = true
         end
     end
-
+    ### این یادمه درست کار می کرد ولی احیانا نباید آنبلاک ها رو بیرون میداد؟
+    ### ولی فکککر کنم ارمیا یه جوری زده بود که بلاک ها همونا میشدن
     return blocked
 end
-
-function remove_blocked_rev(S, rev)
-    unblocked = .! find_blocked_rev(S, rev)
-    return S[:, unblocked], rev[:, unblocked]
-end
-
-function remove_blocked(S, rev)
-    S, rev = remove_blocked_irrev(S, rev)
-    S, rev = remove_blocked_rev(S, rev)
-    return S, rev
-end
-
 end
