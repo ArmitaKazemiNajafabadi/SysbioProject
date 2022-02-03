@@ -21,30 +21,21 @@ function find_essential_reactions(S, rev)
      findes all blocked essential reactions
         and returns an array of indices corresponding to reactions which were inessential.
 =#
-    m, n = size(S)
-    model = Model(GLPK.Optimizer)
 
-    # set variables and constraints based on LP (10) in the article
-    @variable(model, -Inf <= v[j=1:n] <= Inf)
-    @variable(model, 0.0 <= u[j=1:n] <= 1.0)        # 0 <= u <= 1
+#= Ye hamchin LP bayad hal she:
 
-    for j in 1:n
-        if rev[j]
-            @constraint(model, u[j] == 1.0)         # u[j] == 1 if rev[j], variable u just stands for irreversible reactions
-        else
-            @constraint(model, u[j] <= v[j])        # u <= v_I
-        end
-    end
-    for j in 1:m
-        @constraint(model, sum(S[j,k]*v[k] for k in 1:n) == 0.0)   # Sv == 0
-    end
-    # set objective function : sum u_i for i in R_I
-    @objective(model, Max, sum([u[j] for j in 1:n]))
-    optimize!(model)
-    result = [value(u[j]) for j in 1:n]
+min v_t
+    such that:
+            Sigma_{j=1}^{M} S_{ij}v_{j} = 0         i= 1, 2, ..., N
+            v_{j}^{min} <= v_j <= v_{j}^{max}       j =1, 2, ..., M
+            v_{biomass} >= v_{biomass}^{max}
 
-    ############################ IN CHERA INO RETURN MIKONE?
-    return result .≈ 1
+baraye t = 1, 2, ..., M, yedune az in LP ha hal mikonim.
+age min v_t shod == 0 va (r_t irreversible bud??) yani v_t inessential e!
+age r_t reversible bud?? momkene majbur shim ""min -v_t"" ro hal konim (ba hamin natije)  
+
+=#
+    return inessential
 end
 
 end
